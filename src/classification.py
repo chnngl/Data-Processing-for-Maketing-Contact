@@ -17,10 +17,6 @@ def is_senior_marketing_role(job_title: str) -> bool:
         r"\bmarketing\b",
         r"\bbrand\b",
         r"\bgrowth\b",
-        r"\bdemand generation\b",
-        r"\bcontent\b",
-        r"\bdigital\b",
-        r"\bcommunications\b",
         r"\bmarketing operations\b",
     ]
 
