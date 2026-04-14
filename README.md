@@ -39,6 +39,8 @@ The contacts are ranked by seniority in the following order:
 If there are multiple senior role contacts from the same company, the one with highest rank will be kept. If there was a tie, the most recent scraped_at value was used.
 
 ## Limitations
+Some company names are missing and few can be inferred from headlines but that doesn't apply to all cases. Although it worked for this file, maybe it shouldn't be treated as certain.
+
 Some of the rule-based filtering remains rigid, especially when excluding clearly irrelevant roles based on headline text as it can be sensitive to title wording. In the meantime, role classification has similar problem as marketing titles vary across companies, and equivalent senior roles may be expressed in different ways.
 
 With more time, I would make the exclusion and classification logic more robust.
