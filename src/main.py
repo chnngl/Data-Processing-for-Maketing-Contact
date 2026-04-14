@@ -1,7 +1,11 @@
 from pathlib import Path
 import pandas as pd
 
+from cleaning import inspect_data, clean_dataset
+
 RAW_PATH = Path("data/raw/linkedin_raw_data.csv")
+OUTPUT_PATH = Path("data/output/cleaned_data_without_ranking.csv")
+REVIEW_PATH = Path("data/output/cleaning_review.csv")
 
 def inspect_data(df: pd.DataFrame) -> None:
     print("---SHAPE---")
@@ -35,35 +39,12 @@ def inspect_column(df: pd.DataFrame, col: str) -> None:
     print("\nTop value counts:")
     print(series.value_counts().head(10))
 
-#extra space, title, or all capitalization in name column
-#mutiple values in headline, some with html entity &, irrelevant position like software engineer
-#phone number as email
-#incomplete profile url
-#duplicate names, emails, profile urls
-
-
-def check_duplicate_urls(df: pd.DataFrame) -> None:
-    print("---DUPLICATE PROFILE URLS---")
-    dupes = df[df["profile_url"].notna() & df["profile_url"].duplicated(keep=False)]
-    print(dupes[["raw_name", "company_name", "headline", "email", "profile_url", "scraped_at"]]
-          .sort_values("profile_url")
-          .to_string(index=False))
-    print()
-
-def check_duplicate_name_company(df: pd.DataFrame) -> None:
-    print("---DUPLICATE NAME at SAME COMPANY---")
-    temp = df.copy()
-
-    #remove extra space and turn to lowercase
-    temp["raw_name_clean"] = temp["raw_name"].astype(str).str.strip().str.lower()
-    temp["company_name_clean"] = temp["company_name"].astype(str).str.strip().str.lower()
-
-    #show all rows where the same cleaned name and company appears more than once
-    dupes = temp[temp.duplicated(subset=["raw_name_clean", "company_name_clean"], keep=False)]
-    print(dupes[["raw_name", "company_name", "headline", "email", "profile_url", "scraped_at"]]
-          .sort_values(["raw_name", "company_name", "scraped_at"])
-          .to_string(index=False))
-    print()
+#summary of issued found:
+#extra space, title, all capitalization, N/A or - in name column, linkedin ads also found
+#mutiple values in headline, some with html entity &, irrelevant position like software engineer, pronouns attached, extra info after -
+#inconsistent company name and incomplete profile url
+#phone number as email, personal email exists
+#duplicate names, emails, or profile urls
 
 def main() -> None:
     pd.set_option("display.max_columns", None)
@@ -72,11 +53,20 @@ def main() -> None:
 
     df = pd.read_csv(RAW_PATH)
     inspect_data(df)
-    for col in ["raw_name", "headline", "company_name", "email", "profile_url"]:
-        inspect_column(df, col)
 
-    check_duplicate_urls(df)
-    check_duplicate_name_company(df)
+    cleaned_df = clean_dataset(df)
+
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    cleaned_df.to_csv(OUTPUT_PATH, index=False)
+
+    #for col in ["raw_name", "headline", "company_name", "email", "profile_url"]:
+    #   inspect_column(df, col)
+
+    print()
+    print("=== CLEANING SUMMARY ===")
+    print(f"Raw rows loaded: {len(df)}")
+    print(f"Rows after cleaning: {len(cleaned_df)}")
+    print(f"Saved file to: {OUTPUT_PATH}")
 
 if __name__ == "__main__":
     main()
