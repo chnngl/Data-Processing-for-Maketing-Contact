@@ -36,6 +36,15 @@ def inspect_data(df: pd.DataFrame) -> None:
     print(df.head(10).to_string(index=False))
     print()
 
+#missing values: name, company name, profile_url or email
+
+#summary of issued found:
+#extra space, title, all capitalization, N/A or - in name column, linkedin ads also found
+#mutiple values in headline, some with html entity &, irrelevant position like software engineer, pronouns attached, extra info after -
+#inconsistent company name and incomplete profile url
+#phone number as email, personal email exists
+#duplicate names, emails, or profile urls
+
 def normalize_whitespace(value: str) -> str:
     value = str(value).strip()
     value = re.sub(r"\s+", " ", value)
@@ -174,7 +183,6 @@ def deduplicate_profiles(df: pd.DataFrame) -> pd.DataFrame:
     combined = combined.sort_values(["source_row_id"]).reset_index(drop=True)
     return combined
 
-
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     cleaned = df.copy()
     cleaned["source_row_id"] = cleaned.index
@@ -186,6 +194,8 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     missing_company_mask = cleaned["company_name"] == ""
     cleaned.loc[missing_company_mask, "company_name"] = (
     cleaned.loc[missing_company_mask, "headline"].apply(infer_company_from_headline))
+    #standardize again after inference
+    cleaned["company_name"] = cleaned["company_name"].apply(standardize_company_name)
 
     cleaned["email"] = cleaned["email"].apply(clean_email)
     cleaned["linkedin_url"] = cleaned["profile_url"].apply(clean_url)
@@ -202,7 +212,8 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     #keep original raw order to check erased examples
     cleaned = cleaned.sort_values("source_row_id").reset_index(drop=True)
 
-    cleaned = cleaned[
+    '''cleaned = cleaned[
         ["contact_name", "job_title", "company_name", "linkedin_url", "email"]
-    ].copy()
+    ].copy()'''
+
     return cleaned
